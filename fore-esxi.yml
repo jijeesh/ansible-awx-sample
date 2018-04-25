@@ -1,0 +1,82 @@
+---
+- hosts: localhost
+  connection: local
+
+  tasks:
+   - name: Create a VM
+     delegate_to: localhost
+     vmware_guest:
+      hostname: "{{ vcenter_hostname }}"
+      username: "{{ vcenter_user }}"
+      password: "{{ vcenter_passwd }}"
+      validate_certs: False
+      datacenter: "ha-datacenter"
+      name: "{{ vm_name }}"
+      state: poweredon
+      guest_id: centos7_64Guest
+      wait_for_ip_address: false
+      folder: /vm
+      hardware:
+        hotadd_cpu: yes
+        memory_mb: 1536
+        num_cpus: 1
+        hotadd_memory: yes
+        scsi: paravirtual
+      disk:
+      - size_gb: 10
+        type: thin
+        datastore: "{{ datastore }}"
+      networks:
+      - name: "{{ network }}"
+        device_type: vmxnet3
+        start_connected: yes
+
+   - name: Collect Facts
+     vmware_guest_facts:
+       hostname: "{{ vcenter_hostname }}"
+       username: "{{ vcenter_user }}"
+       password: "{{ vcenter_passwd }}"
+       datacenter: ha-datacenter
+       validate_certs: no
+       name: "{{ vm_name }}" 
+     delegate_to: localhost
+     register: vmfacts
+
+   - name: Print MAC mac_address
+     debug:
+      #msg: "{{ vmfacts }} {{ vm_name }}"
+      msg: "{{ vmfacts.instance.hw_eth0.macaddress }} {{ vm_name }}"
+
+   - set_fact:
+       mac: "{{ vmfacts.instance.hw_eth0.macaddress }}"
+
+   - name: Create Foreman Host
+     foreman_host:
+       name: "{{ vm_name }}"
+       architecture: "{{ arch }}"
+       domain: "{{ domain }}"
+       environment: "{{ env }}"
+       operatingsystem: "{{ os }}"
+       ptable: "{{ part }}"
+       location: "{{ loc }}"
+       organization: "{{ org }}"
+       medium: "{{ medium }}"
+       subnet: "{{ subnet }}"
+       mac: "{{ mac }}"
+       provision_method: build
+       root_pass: "{{ root_pass }}"
+       foreman_host: "{{ foreman_host }}"
+       foreman_port: "{{ foreman_port }}"
+       foreman_user: "{{ foreman_user }}"
+       foreman_pass: "{{ foreman_pass }}"
+       state: present
+
+   - name: Restart VM
+     delegate_to: localhost
+     vmware_guest:
+       hostname: "{{ vcenter_hostname }}"
+       validate_certs: no
+       username: "{{ vcenter_user }}"
+       password: "{{ vcenter_passwd }}"
+       name: "{{ vm_name }}"
+       state: restarted

@@ -1,0 +1,25 @@
+---
+- hosts: localhost
+  connection: local
+
+  tasks:
+   - name: Create Foreman Host
+     foreman_host:
+       name: "{{ vm_name }}"
+       architecture: "{{ arch }}"
+       domain: "{{ domain }}"
+       environment: "{{ env }}"
+       operatingsystem: "{{ os }}"
+       ptable: "{{ part }}"
+       location: "{{ loc }}"
+       organization: "{{ org }}"
+       medium: "{{ medium }}"
+       subnet: "{{ subnet }}"
+       mac: "{{ mac }}"
+       provision_method: build
+       root_pass: "{{ root_pass }}"
+       foreman_host: "{{ foreman_host }}"
+       foreman_port: "{{ foreman_port }}"
+       foreman_user: "{{ foreman_user }}"
+       foreman_pass: "{{ foreman_pass }}"
+       state: present

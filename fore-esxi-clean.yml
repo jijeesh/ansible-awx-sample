@@ -1,0 +1,38 @@
+---
+- hosts: localhost
+  connection: local
+
+  tasks:
+#   - name: Shutdown VM
+#     delegate_to: localhost
+#     vmware_guest:
+#      hostname: "{{ vcenter_hostname }}"
+#      username: "{{ vcenter_user }}"
+#      password: "{{ vcenter_passwd }}"
+#      validate_certs: False
+#      datacenter: "ha-datacenter"
+#      name: "{{ vm_name }}"
+#      folder: "/vm"
+#      state: poweredoff
+
+   - name: Delete VM
+     delegate_to: localhost
+     vmware_guest:
+      hostname: "{{ vcenter_hostname }}"
+      username: "{{ vcenter_user }}"
+      password: "{{ vcenter_passwd }}"
+      validate_certs: False
+      datacenter: "ha-datacenter"
+      name: "{{ vm_name }}"
+      state: absent
+      force: yes
+
+   - name: Delete Foreman Host
+     foreman_host:
+       name: "{{ vm_name }}"
+       domain: "{{ domain }}"
+       foreman_host: "{{ foreman_host }}"
+       foreman_port: "{{ foreman_port }}"
+       foreman_user: "{{ foreman_user }}"
+       foreman_pass: "{{ foreman_pass }}"
+       state: absent
